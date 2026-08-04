@@ -3,15 +3,18 @@
 import { useEffect, useState } from "react";
 import { getCopy, LANGUAGES, type Locale } from "./i18n";
 
-type Phase = "brief" | "files" | "analyzing" | "results";
+type Phase = "playground" | "generating" | "concept" | "files" | "analyzing" | "results";
 type ResultTab = "overview" | "overlay" | "outputs";
 
-const TEMPLATE_KEYS = ["defaultBrief", "arenaBrief", "brandBrief", "festivalBrief"] as const;
+const TEMPLATE_KEYS = ["defaultBrief", "arenaBrief", "brandBrief", "festivalBrief", "vibeDefault"] as const;
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("zh-TW");
-  const [phase, setPhase] = useState<Phase>("brief");
-  const [brief, setBrief] = useState(getCopy("zh-TW", "defaultBrief"));
+  const [phase, setPhase] = useState<Phase>("playground");
+  const [brief, setBrief] = useState(getCopy("zh-TW", "vibeDefault"));
+  const [spaceType, setSpaceType] = useState("indoor");
+  const [dimensions, setDimensions] = useState({ width: "24", depth: "18", height: "9" });
+  const [stageStep, setStageStep] = useState(0);
   const [masterFile, setMasterFile] = useState("NorthStar_MasterShow_v18.dwg");
   const [venueFile, setVenueFile] = useState("O2_Arena_venue_plan.pdf");
   const [agentStep, setAgentStep] = useState(0);
@@ -19,6 +22,7 @@ export default function Home() {
   const [approved, setApproved] = useState(false);
   const [downloaded, setDownloaded] = useState<string | null>(null);
   const [mobileNav, setMobileNav] = useState(false);
+  const [shared, setShared] = useState(false);
   const t = (key: Parameters<typeof getCopy>[1]) => getCopy(locale, key);
 
   const agents = [
@@ -36,6 +40,14 @@ export default function Home() {
     [t("output4"), t("output4Meta")],
   ];
 
+  const spaceOptions = [
+    ["indoor", t("spaceIndoor")],
+    ["outdoor", t("spaceOutdoor")],
+    ["theatre", t("spaceTheatre")],
+    ["arena", t("spaceArena")],
+    ["blank", t("spaceBlank")],
+  ];
+
   useEffect(() => {
     if (phase !== "analyzing") return;
     const timer = window.setInterval(() => {
@@ -51,8 +63,27 @@ export default function Home() {
     return () => window.clearInterval(timer);
   }, [phase]);
 
-  const phaseLabel = phase === "brief"
-    ? t("phaseNew")
+  useEffect(() => {
+    if (phase !== "generating") return;
+    const timer = window.setInterval(() => {
+      setStageStep((current) => {
+        if (current >= 4) {
+          window.clearInterval(timer);
+          window.setTimeout(() => setPhase("concept"), 360);
+          return current;
+        }
+        return current + 1;
+      });
+    }, 520);
+    return () => window.clearInterval(timer);
+  }, [phase]);
+
+  const phaseLabel = phase === "playground"
+    ? t("phasePlay")
+    : phase === "generating"
+      ? t("phaseCreate")
+      : phase === "concept"
+        ? t("phaseConcept")
     : phase === "files"
       ? t("phaseIntake")
       : phase === "analyzing"
@@ -73,11 +104,29 @@ export default function Home() {
     setVenueFile("O2_Arena_venue_plan.pdf");
   }
 
+  function createStage() {
+    setStageStep(0);
+    setShared(false);
+    setPhase("generating");
+  }
+
+  function remixStage() {
+    setBrief(`${t("vibeElectric")} · ${t("vibeMinimal")}`);
+    createStage();
+  }
+
+  function shareConcept() {
+    setShared(true);
+    if (navigator.clipboard) void navigator.clipboard.writeText(window.location.href);
+  }
+
   function resetShow() {
-    setPhase("brief");
-    setBrief(t("defaultBrief"));
+    setPhase("playground");
+    setBrief(t("vibeDefault"));
+    setStageStep(0);
     setAgentStep(0);
     setApproved(false);
+    setShared(false);
     setTab("overview");
   }
 
@@ -136,47 +185,124 @@ export default function Home() {
           </div>
         </header>
 
-        {phase === "brief" && (
-          <section className="brief-view view-enter">
-            <div className="hero-copy">
-              <p className="eyebrow"><span>{t("heroKicker")}</span><b>01 / BRIEF</b></p>
-              <h1>{t("heroLine1")}<br /><em>{t("heroLine2")}</em></h1>
-              <p className="hero-sub">{t("heroSub")}</p>
+        {phase === "playground" && (
+          <section className="brief-view playground-view view-enter">
+            <div className="hero-copy playground-hero">
+              <p className="eyebrow"><span>{t("playKicker")}</span><b>01 / IMAGINE</b></p>
+              <h1>{t("playLine1")}<br /><em>{t("playLine2")}</em></h1>
+              <p className="hero-sub">{t("playSub")}</p>
             </div>
 
-            <div className="prompt-panel">
-              <label htmlFor="show-brief">{t("whatMaking")}</label>
-              <textarea id="show-brief" value={brief} onChange={(event) => setBrief(event.target.value)} rows={5} placeholder={t("briefPlaceholder")} />
-              <div className="prompt-actions">
-                <div className="prompt-tools" aria-label="Brief shortcuts">
-                  <button onClick={() => setBrief(t("arenaBrief"))}>{t("arena")}</button>
-                  <button onClick={() => setBrief(t("brandBrief"))}>{t("brand")}</button>
-                  <button onClick={() => setBrief(t("festivalBrief"))}>{t("festival")}</button>
+            <div className="play-builder">
+              <section className="space-card">
+                <div className="builder-heading"><span>01</span><strong>{t("whereSpace")}</strong></div>
+                <div className="space-options">
+                  {spaceOptions.map(([id, label]) => (
+                    <button className={spaceType === id ? "active" : ""} onClick={() => setSpaceType(id)} key={id}>
+                      <i className={`space-icon ${id}`} /><span>{label}</span>
+                    </button>
+                  ))}
                 </div>
-                <button className="primary-cta" onClick={() => setPhase("files")} disabled={!brief.trim()}>
-                  {t("buildShow")} <span aria-hidden="true">↗</span>
+                <div className="dimension-heading"><span>{t("spaceSize")}</span><em>M</em></div>
+                <div className="dimension-row">
+                  {(["width", "depth", "height"] as const).map((dimension) => (
+                    <label key={dimension}>
+                      <span>{t(dimension)}</span>
+                      <input type="number" min="3" max="200" value={dimensions[dimension]} onChange={(event) => setDimensions({ ...dimensions, [dimension]: event.target.value })} />
+                      <em>m</em>
+                    </label>
+                  ))}
+                </div>
+              </section>
+
+              <section className="vibe-card">
+                <div className="builder-heading"><span>02</span><strong>{t("vibeLabel")}</strong></div>
+                <textarea value={brief} onChange={(event) => setBrief(event.target.value)} rows={6} placeholder={t("vibePlaceholder")} aria-label={t("vibeLabel")} />
+                <div className="vibe-chips">
+                  <button onClick={() => setBrief(t("vibeDefault"))}>{t("vibeDreamy")}</button>
+                  <button onClick={() => setBrief(t("vibeElectric"))}>{t("vibeElectric")}</button>
+                  <button onClick={() => setBrief(t("vibeMinimal"))}>{t("vibeMinimal")}</button>
+                </div>
+                <button className="primary-cta playground-cta" onClick={createStage} disabled={!brief.trim()}>
+                  {t("createStage")} <span aria-hidden="true">✦</span>
                 </button>
+                <p className="no-files-note">{t("noFiles")}</p>
+              </section>
+            </div>
+
+            <div className="playground-footer">
+              <button className="pro-entry" onClick={() => setPhase("files")}>{t("proEntry")} <span>→</span></button>
+              <button className="recent-project compact" onClick={() => setPhase("results")}>
+                <span className="project-thumbnail"><i /><b>84</b></span>
+                <span className="project-name"><small>{t("continue")}</small><strong>{t("sampleProject")}</strong><em>{t("londonReview")}</em></span>
+                <span className="project-status">{t("itemsNeedYou")} <b>→</b></span>
+              </button>
+            </div>
+          </section>
+        )}
+
+        {phase === "generating" && (
+          <section className="play-generation view-enter">
+            <div className="sketch-loader" aria-hidden="true">
+              <span className="loader-grid" />
+              <span className="loader-stage"><i /><i /><i /></span>
+              <span className="loader-screen" />
+              <span className="loader-progress">{Math.min(96, 20 + stageStep * 19)}%</span>
+            </div>
+            <div className="generation-copy">
+              <p className="eyebrow"><span>PLAYFUL AI</span><b>02 / CREATE</b></p>
+              <h2>{t("creatingLine1")}<br /><em>{t("creatingLine2")}</em></h2>
+              <p>{t("creatingSub")}</p>
+              <div className="generation-facts">
+                <span><small>{t("spaceSize")}</small><strong>{dimensions.width} × {dimensions.depth} × {dimensions.height} m</strong></span>
+                <span><small>{t("whereSpace")}</small><strong>{spaceOptions.find(([id]) => id === spaceType)?.[1]}</strong></span>
               </div>
             </div>
+          </section>
+        )}
 
-            <div className="orchestration-line">
-              <span>{t("oneConversation")}</span><i />
-              <span>{t("specialistAgents")}</span><i />
-              <span>{t("reviewableOutputs")}</span>
+        {phase === "concept" && (
+          <section className="concept-view view-enter">
+            <div className="concept-header">
+              <div>
+                <button className="back-link" onClick={() => setPhase("playground")}>← {t("backPlay")}</button>
+                <p className="eyebrow"><span>PLAYFUL CONCEPT 001</span><b>{t("phaseConcept")}</b></p>
+                <h2>{t("conceptLine1")}<br /><em>{t("conceptLine2")}</em></h2>
+              </div>
+              <span className="concept-badge"><i />{t("fitWithChanges")}</span>
             </div>
 
-            <button className="recent-project" onClick={() => setPhase("results")}>
-              <span className="project-thumbnail"><i /><b>84</b></span>
-              <span className="project-name"><small>{t("continue")}</small><strong>{t("sampleProject")}</strong><em>{t("londonReview")}</em></span>
-              <span className="project-status">{t("itemsNeedYou")} <b>→</b></span>
-            </button>
+            <div className="concept-grid">
+              <div className="concept-visual">
+                <ConceptStage />
+                <div className="concept-visual-meta"><span>{spaceOptions.find(([id]) => id === spaceType)?.[1]}</span><strong>{dimensions.width} × {dimensions.depth} × {dimensions.height} M</strong></div>
+              </div>
+              <aside className="concept-details">
+                <p className="section-label">CONCEPT DIRECTION</p>
+                <h3>{t("conceptName")}</h3>
+                <p>{t("conceptDesc")}</p>
+                <div className="concept-palette"><i /><i /><i /><i /></div>
+                <div className="concept-specs">
+                  <span><small>{t("conceptStage")}</small><strong>{Math.max(8, Math.round(Number(dimensions.width) * .58))} m</strong></span>
+                  <span><small>{t("conceptScreen")}</small><strong>{Math.max(6, Math.round(Number(dimensions.width) * .38))} m</strong></span>
+                  <span><small>{t("conceptAudience")}</small><strong>{spaceType === "arena" ? "8,000+" : "1,200"}</strong></span>
+                  <span><small>{t("conceptMood")}</small><strong>{t("vibeDreamy")}</strong></span>
+                </div>
+                <p className="concept-disclaimer">{t("conceptDisclaimer")}</p>
+                <div className="concept-actions">
+                  <button className="secondary-cta" onClick={remixStage}>{t("remix")} ↻</button>
+                  <button className="secondary-cta" onClick={shareConcept}>{shared ? t("shared") : t("share")} ↗</button>
+                  <button className="primary-cta large" onClick={() => setPhase("files")}>{t("continueProfessional")} <span>→</span></button>
+                </div>
+              </aside>
+            </div>
           </section>
         )}
 
         {phase === "files" && (
           <section className="intake-view view-enter">
             <div className="view-heading">
-              <button className="back-link" onClick={() => setPhase("brief")}>← {t("backBrief")}</button>
+              <button className="back-link" onClick={() => setPhase("concept")}>← {t("backPlay")}</button>
               <p className="eyebrow"><span>{t("venueFitKicker")}</span><b>{t("sourceFiles")}</b></p>
               <h2>{t("fitLine1")}<br /><em>{t("fitLine2")}</em></h2>
               <p>{t("intakeDesc")}</p>
@@ -320,6 +446,21 @@ function DecisionItem({ level, title, text, tag }: { level: string; title: strin
 
 function Metric({ title, value, note, state }: { title: string; value: string; note: string; state: string }) {
   return <div className={`metric ${state}`}><small>{title}</small><strong>{value}</strong><em><i />{note}</em></div>;
+}
+
+function ConceptStage() {
+  return (
+    <div className="concept-scene" aria-label="AI generated stage concept">
+      <div className="scene-haze haze-a" /><div className="scene-haze haze-b" />
+      <div className="light-beam beam-a" /><div className="light-beam beam-b" /><div className="light-beam beam-c" /><div className="light-beam beam-d" />
+      <div className="concept-screen"><span className="moon" /><i className="horizon" /><i className="reflection" /></div>
+      <div className="light-column column-a" /><div className="light-column column-b" /><div className="light-column column-c" /><div className="light-column column-d" />
+      <div className="concept-stage-base"><i /><i /><i /></div>
+      <div className="concept-runway"><span /></div>
+      <div className="audience-field">{Array.from({ length: 56 }).map((_, index) => <i key={index} />)}</div>
+      <span className="scene-label">PLAYFUL · CONCEPT 001</span>
+    </div>
+  );
 }
 
 function StagePlan({ detailed = false, masterLabel, adaptedLabel, cameraLabel }: { detailed?: boolean; masterLabel: string; adaptedLabel: string; cameraLabel: string }) {
