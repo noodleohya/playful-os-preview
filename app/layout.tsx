@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Playful OS — Show Intelligence",
-  description: "Describe your next show. Playful OS turns creative intent into coordinated, reviewable production outputs.",
+  title: "Playful OS — Imagine the Moment",
+  description: "Describe a space, add its dimensions and atmosphere, and watch your first stage concept appear with Playful OS.",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
