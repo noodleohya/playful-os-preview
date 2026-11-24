@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { getCopy, LANGUAGES, type Locale } from "./i18n";
 
 type Phase = "playground" | "generating" | "concept" | "files" | "analyzing" | "results";
@@ -269,7 +270,7 @@ export default function Home() {
                 <p className="eyebrow"><span>PLAYFUL CONCEPT 001</span><b>{t("phaseConcept")}</b></p>
                 <h2>{t("conceptLine1")}<br /><em>{t("conceptLine2")}</em></h2>
               </div>
-              <span className="concept-badge"><i />{t("fitWithChanges")}</span>
+              <span className="concept-badge"><i />PLAYFUL AI · CONCEPT</span>
             </div>
 
             <div className="concept-grid">
@@ -451,13 +452,8 @@ function Metric({ title, value, note, state }: { title: string; value: string; n
 function ConceptStage() {
   return (
     <div className="concept-scene" aria-label="AI generated stage concept">
-      <div className="scene-haze haze-a" /><div className="scene-haze haze-b" />
-      <div className="light-beam beam-a" /><div className="light-beam beam-b" /><div className="light-beam beam-c" /><div className="light-beam beam-d" />
-      <div className="concept-screen"><span className="moon" /><i className="horizon" /><i className="reflection" /></div>
-      <div className="light-column column-a" /><div className="light-column column-b" /><div className="light-column column-c" /><div className="light-column column-d" />
-      <div className="concept-stage-base"><i /><i /><i /></div>
-      <div className="concept-runway"><span /></div>
-      <div className="audience-field">{Array.from({ length: 56 }).map((_, index) => <i key={index} />)}</div>
+      <Image className="concept-stage-image" src="/stage-concept-moonlit-v2.png" alt="Moonlit forest stage with a curved panoramic screen, runway, lighting and audience" fill priority sizes="(max-width: 760px) 100vw, 66vw" />
+      <span className="concept-image-shade" />
       <span className="scene-label">PLAYFUL · CONCEPT 001</span>
     </div>
   );
