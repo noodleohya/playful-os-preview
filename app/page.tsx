@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Draft, Extras, extraTitle } from "./Preview";
 import { getCopy, LANGUAGES, type Locale } from "./i18n";
 
 type Phase = "playground" | "generating" | "concept" | "files" | "analyzing" | "results";
@@ -11,6 +12,7 @@ const TEMPLATE_KEYS = ["defaultBrief", "arenaBrief", "brandBrief", "festivalBrie
 
 export default function Home() {
   const [locale, setLocale] = useState<Locale>("zh-TW");
+  const [extra, setExtra] = useState<"preview" | "subscription" | null>(null);
   const [phase, setPhase] = useState<Phase>("playground");
   const [brief, setBrief] = useState(getCopy("zh-TW", "vibeDefault"));
   const [spaceType, setSpaceType] = useState("indoor");
@@ -122,6 +124,7 @@ export default function Home() {
   }
 
   function resetShow() {
+    setExtra(null);
     setPhase("playground");
     setBrief(t("vibeDefault"));
     setStageStep(0);
@@ -150,7 +153,9 @@ export default function Home() {
         </button>
 
         <nav className="primary-nav" aria-label="Workspace">
-          <button className="nav-item active"><span className="nav-index">01</span>{t("projects")}<span className="nav-count">04</span></button>
+          <button className={extra === "preview" ? "nav-item active" : "nav-item"} onClick={() => { setExtra("preview"); setMobileNav(false); }}>{extraTitle(locale, "preview")}</button>
+          <button className={extra === "subscription" ? "nav-item active" : "nav-item"} onClick={() => { setExtra("subscription"); setMobileNav(false); }}>{extraTitle(locale, "subscription")}</button>
+          <button className={!extra ? "nav-item active" : "nav-item"} onClick={() => { setExtra(null); setMobileNav(false); }}><span className="nav-index">01</span>{t("projects")}<span className="nav-count">04</span></button>
           <button className="nav-item"><span className="nav-index">02</span>{t("venueLibrary")}<span className="nav-count">2.1k</span></button>
           <button className="nav-item"><span className="nav-index">03</span>{t("knowledge")}<span className="nav-count">128</span></button>
         </nav>
@@ -174,7 +179,7 @@ export default function Home() {
         <header className="topbar">
           <button className="mobile-menu" onClick={() => setMobileNav(true)} aria-label="Menu">☰</button>
           <div className="context-path"><span>North Star Tour</span><b>/</b><strong>{phaseLabel}</strong></div>
-          <div className="topbar-actions">
+          <div className="topbar-actions"><Draft locale={locale} />
             <label className="language-picker">
               <span className="language-globe" aria-hidden="true">◎</span>
               <select value={locale} onChange={(event) => changeLanguage(event.target.value as Locale)} aria-label="Language">
@@ -186,7 +191,8 @@ export default function Home() {
           </div>
         </header>
 
-        {phase === "playground" && (
+        {extra && <Extras locale={locale} page={extra} />}
+        {!extra && phase === "playground" && (
           <section className="brief-view playground-view view-enter">
             <div className="hero-copy playground-hero">
               <p className="eyebrow"><span>{t("playKicker")}</span><b>01 / IMAGINE</b></p>
@@ -242,7 +248,7 @@ export default function Home() {
           </section>
         )}
 
-        {phase === "generating" && (
+        {!extra && phase === "generating" && (
           <section className="play-generation view-enter">
             <div className="sketch-loader" aria-hidden="true">
               <span className="loader-grid" />
@@ -262,7 +268,7 @@ export default function Home() {
           </section>
         )}
 
-        {phase === "concept" && (
+        {!extra && phase === "concept" && (
           <section className="concept-view view-enter">
             <div className="concept-header">
               <div>
@@ -300,7 +306,7 @@ export default function Home() {
           </section>
         )}
 
-        {phase === "files" && (
+        {!extra && phase === "files" && (
           <section className="intake-view view-enter">
             <div className="view-heading">
               <button className="back-link" onClick={() => setPhase("concept")}>← {t("backPlay")}</button>
@@ -324,7 +330,7 @@ export default function Home() {
           </section>
         )}
 
-        {phase === "analyzing" && (
+        {!extra && phase === "analyzing" && (
           <section className="analysis-view view-enter">
             <div className="analysis-orbit" aria-hidden="true">
               <span className="orbit orbit-a" /><span className="orbit orbit-b" />
@@ -347,7 +353,7 @@ export default function Home() {
           </section>
         )}
 
-        {phase === "results" && (
+        {!extra && phase === "results" && (
           <section className="results-view view-enter">
             <div className="results-header">
               <div>
@@ -452,7 +458,7 @@ function Metric({ title, value, note, state }: { title: string; value: string; n
 function ConceptStage() {
   return (
     <div className="concept-scene" aria-label="AI generated stage concept">
-      <Image className="concept-stage-image" src="/stage-concept-moonlit-v2.png" alt="Moonlit forest stage with a curved panoramic screen, runway, lighting and audience" fill priority sizes="(max-width: 760px) 100vw, 66vw" />
+      <Image className="concept-stage-image" src="/stage-concept-moonlit-v2.png" alt="Moonlit forest stage with a curved panoramic screen, runway, lighting and audience" fill priority unoptimized sizes="(max-width: 760px) 100vw, 66vw" />
       <span className="concept-image-shade" />
       <span className="scene-label">PLAYFUL · CONCEPT 001</span>
     </div>
