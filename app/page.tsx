@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { Draft, Extras, extraTitle } from "./Preview";
 import { getCopy, LANGUAGES, type Locale } from "./i18n";
+import { publicAsset } from "./publicAsset";
 
 type Phase = "playground" | "generating" | "concept" | "files" | "analyzing" | "results";
 type ResultTab = "overview" | "overlay" | "outputs";
@@ -458,7 +459,7 @@ function Metric({ title, value, note, state }: { title: string; value: string; n
 function ConceptStage() {
   return (
     <div className="concept-scene" aria-label="AI generated stage concept">
-      <Image className="concept-stage-image" src="/stage-concept-moonlit-v2.png" alt="Moonlit forest stage with a curved panoramic screen, runway, lighting and audience" fill priority unoptimized sizes="(max-width: 760px) 100vw, 66vw" />
+      <Image className="concept-stage-image" src={publicAsset("stage-concept-moonlit-v2.png")} alt="Moonlit forest stage with a curved panoramic screen, runway, lighting and audience" fill priority unoptimized sizes="(max-width: 760px) 100vw, 66vw" />
       <span className="concept-image-shade" />
       <span className="scene-label">PLAYFUL · CONCEPT 001</span>
     </div>

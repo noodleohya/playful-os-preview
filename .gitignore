@@ -40,3 +40,8 @@ next-env.d.ts
 /.wrangler/
 /outputs/
 /work/
+
+# static GitHub Pages build output
+/pages-dist/
+
+/pages-verify/
